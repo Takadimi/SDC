@@ -1,17 +1,22 @@
-document.addEventListener("DOMContentLoaded", function() {
-	// SDC.init();
-});
-
-document.onreadystatechange = function() {
-	var state = document.readyState;
-
-	if (state == "complete") {
-		SDC.init();
-	}
-};
-
 var SDC = {
-	init: function() {
+	hotkey:		     "126",
+	backgroundColor: "#000",
+	textColor:	     "#E2B279",
+	height:			 "300px",
+
+	applyOptions: function(options) {
+		for (var key in options) {
+			if (!options.hasOwnProperty(key)) continue;
+
+			SDC[key] = options[key];
+		}
+	},
+
+	init: function(options) {
+		/*** Apply options ***/
+		SDC.applyOptions(options);
+
+		/*** Create Elements ***/
 		var debugContainerElement               = document.createElement("div");
 		debugContainerElement.id                = "debug_container";
 		debugContainerElement.style.display     = "none";
@@ -33,9 +38,9 @@ var SDC = {
 		var debugTextAreaElement                = document.createElement("textarea");
 		debugTextAreaElement.id                 = "debug_text_area";
 		debugTextAreaElement.style.width        = "99.5%";
-		debugTextAreaElement.style.height       = "300px";
-		debugTextAreaElement.style.background   = "#000";
-		debugTextAreaElement.style.color        = "#E2B279";
+		debugTextAreaElement.style.height       = SDC.height;
+		debugTextAreaElement.style.background   = SDC.backgroundColor;
+		debugTextAreaElement.style.color        = SDC.textColor;
 		debugTextAreaElement.style.resize       = "none";
 		debugTextAreaElement.setAttribute("readonly", "readonly");
 
@@ -43,9 +48,9 @@ var SDC = {
 		debugContainerElement.appendChild(debugTextAreaElement);
 		document.body.appendChild(debugContainerElement);
 
+		/*** Toggle Console Visibility ***/
 		document.addEventListener("keypress", function(e) {
-			SDC.log(e.which);
-			if (e.which == "96") {
+			if (e.which == SDC.hotkey) {
 				if (debugContainerElement.style.display === "none") {
 					debugContainerElement.style.display = "block";
 				} else {
