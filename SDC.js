@@ -10,6 +10,10 @@ var SDC = {
 	anchorV:         "bottom", // Either bottom or top.
 	width:           "100%",
 
+	/*** Command FIFO Queue ***/
+	commands:        [],
+	commandIndex:    "-1",
+
 	applyOptions: function(options) {
 		for (var key in options) {
 			if (!options.hasOwnProperty(key)) continue;
@@ -24,9 +28,11 @@ var SDC = {
 		/*** Create Elements ***/
 		var debugContainerElement               = document.createElement("div");
 		debugContainerElement.id                = "debug_container";
-		debugContainerElement.style.display     = "none";
+		debugContainerElement.style.display     = "flex";
 		debugContainerElement.style.width       = SDC.width;
 		debugContainerElement.style.height      = SDC.height;
+		debugContainerElement.style.fontFamily  = "'Courier New', Courier, monospace";
+		debugContainerElement.style.flexDirection = "column";
 		debugContainerElement.style.position    = "absolute";
 
 		switch (SDC.anchorH) {
@@ -57,37 +63,106 @@ var SDC = {
 		debugHeaderBarElement.style.border      = "1px solid #492121";
 		debugHeaderBarElement.style.paddingLeft = "1%";
 		debugHeaderBarElement.style.fontSize    = "0.8em";
+		debugHeaderBarElement.style.lineHeight  = "15px";
+		debugHeaderBarElement.style.paddingBottom = "4px";
+		debugHeaderBarElement.style.paddingTop    = "4px";
 		debugHeaderBarElement.innerText         = "simple-debug-console";
 
-		var debugTextAreaElement                = document.createElement("textarea");
-		debugTextAreaElement.id                 = "debug_text_area";
-		debugTextAreaElement.style.width        = "99.5%";
-		debugTextAreaElement.style.height       = SDC.height;
-		debugTextAreaElement.style.background   = SDC.backgroundColor;
-		debugTextAreaElement.style.color        = SDC.textColor;
-		debugTextAreaElement.style.resize       = "none";
+		var debugExpressionInputDivContainerElement = document.createElement("div");
+		debugExpressionInputDivContainerElement.style.background = "#BCAFAF";
+		debugExpressionInputDivContainerElement.style.paddingTop = "3px";
+		debugExpressionInputDivContainerElement.style.paddingRight = "3px";
+
+		var debugExpressionInputLabelElement         = document.createElement("label");
+		debugExpressionInputLabelElement.innerHTML   = "=>&nbsp";
+		debugExpressionInputLabelElement.style.float = "left";
+
+		var debugExpressionInputSpanElement            = document.createElement("span");
+		debugExpressionInputSpanElement.style.display  = "block";
+		debugExpressionInputSpanElement.style.overflow = "hidden";
+
+		var debugExpressionInputElement           = document.createElement("input");
+		debugExpressionInputElement.id            = "debug_expression_input";
+		debugExpressionInputElement.style.width   = "100%";
+		debugExpressionInputElement.style.border  = "0";
+		debugExpressionInputElement.style.padding = "1px 0 1px 0";
+		debugExpressionInputElement.setAttribute("type", "text");
+
+		var debugTextAreaElement				  = document.createElement("textarea");
+		debugTextAreaElement.id                   = "debug_text_area";
+		debugTextAreaElement.style.boxSizing      = "border-box";
+		debugTextAreaElement.style.width          = "100%";
+		debugTextAreaElement.style.height         = "100%";
+		debugTextAreaElement.style.border         = "0";
+		debugTextAreaElement.style.padding        = "0";
+		debugTextAreaElement.style.background     = SDC.backgroundColor;
+		debugTextAreaElement.style.color          = SDC.textColor;
+		debugTextAreaElement.style.resize         = "none";
 		debugTextAreaElement.setAttribute("readonly", "readonly");
 
+		debugExpressionInputSpanElement.appendChild(debugExpressionInputElement);
+		debugExpressionInputDivContainerElement.appendChild(debugExpressionInputLabelElement);
+		debugExpressionInputDivContainerElement.appendChild(debugExpressionInputSpanElement);
+
 		debugContainerElement.appendChild(debugHeaderBarElement);
+		debugContainerElement.appendChild(debugExpressionInputDivContainerElement);	
 		debugContainerElement.appendChild(debugTextAreaElement);
 		document.body.appendChild(debugContainerElement);
 
 		/*** Toggle Console Visibility ***/
-		document.addEventListener("keypress", function(e) {
-			if (e.which == SDC.hotkey) {
-				if (debugContainerElement.style.display === "none") {
-					debugContainerElement.style.display = "block";
-					SDC.scrollToBottom();	
-				} else {
-					debugContainerElement.style.display = "none";
+		debugExpressionInputElement.addEventListener("keydown", function(e) {
+			if (e.which == "40") {
+				if (SDC.commandIndex == -1) {
+					this.value = "";
+				}
+
+				if (SDC.commandIndex >= 0) {
+					this.value = SDC.commands[SDC.commandIndex--];
 				}
 			}
 
-			if (debugContainerElement.style.display === "block") {
-				if (e.which == "119") SDC.anchorTop("100%", "200px");
-				if (e.which == "97") SDC.anchorLeft("35%", "98%");
-				if (e.which == "115") SDC.anchorBottom("100%", "200px");
-				if (e.which == "100") SDC.anchorRight("35%", "98%");
+			if (e.which == "38") { 
+				if (SDC.commandIndex < (SDC.commands.length - 1)) {
+					this.value = SDC.commands[++SDC.commandIndex];
+				}
+			}
+		});
+
+		document.addEventListener("keypress", function(e) {
+			if (e.which == SDC.hotkey) {
+				if (debugContainerElement.style.display === "none") {
+					debugContainerElement.style.display = "flex";
+					debugExpressionInputElement.focus();
+					SDC.scrollToBottom();
+				} else {
+					debugContainerElement.style.display = "none";
+				}
+
+				e.preventDefault();
+			}
+		});
+
+		debugExpressionInputElement.addEventListener("keypress", function(e) {
+			if (e.which == "13") {
+				if (this.value === "clear") {
+					debugTextAreaElement.textContent = "";
+				} else {
+					if (SDC.commands.length === 0 || SDC.commands[0] !== this.value) {
+						SDC.commands.unshift(this.value);
+					}
+						
+					SDC.log("Expression: '" + this.value + "'");
+
+					try {
+						var expressionEvalResult = eval(this.value);
+						SDC.log("\t\t-> " + expressionEvalResult);
+					} catch (e) {
+						SDC.log("\t\t-> " + e.message);
+					}
+				}
+
+				this.value = "";
+				SDC.commandIndex = -1;
 			}
 		});
 	},
