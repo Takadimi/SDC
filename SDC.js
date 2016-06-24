@@ -156,6 +156,8 @@ var SDC = {
 		/*** Cycle Through Command Queue ***/
 		sdcExpressionInput.addEventListener("keydown", function(e) {
 			if (e.which == "40") {
+				if (SDC.commandIndex === (SDC.commands.length - 1)) SDC.commandIndex--;
+		
 				if (SDC.commandIndex == -1) {
 					this.value = "";
 				}
@@ -178,7 +180,7 @@ var SDC = {
 				if (this.value === "clear") {
 					sdcTextArea.textContent = "";
 				} else {
-					if (SDC.commands.length === 0 || (SDC.commands[0] !== this.value && this.value !== "")) {
+					if (this.value !== "" && (SDC.commands.length === 0 || SDC.commands[0] !== this.value)) {
 						SDC.commands.unshift(this.value);
 					}
 						
