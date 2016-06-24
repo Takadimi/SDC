@@ -193,7 +193,10 @@ var SDC = {
 				}
 
 				this.value = "";
+				this.focus();
 				SDC.commandIndex = -1;
+	
+				e.preventDefault();
 			}
 		});
 	},
@@ -251,7 +254,7 @@ var SDC = {
 	log: function(message) {
 		var maxBufferLines = 200;
 
-		var prepend     = "> ";
+		var prepend     = ">";
 		var now         = new Date();
 		var timestamp   = "(" + this.leftPad(now.getHours().toString(), 2, "0") + ":" + this.leftPad(now.getMinutes().toString(), 2, "0") + ":" + this.leftPad(now.getSeconds().toString(), 2, "0") + ") | ";
 
