@@ -159,7 +159,7 @@ var SDC = {
 				if (this.value === "clear") {
 					sdcTextArea.textContent = "";
 				} else {
-					if (SDC.commands.length === 0 || SDC.commands[0] !== this.value) {
+					if (SDC.commands.length === 0 || (SDC.commands[0] !== this.value && this.value !== "")) {
 						SDC.commands.unshift(this.value);
 					}
 						
