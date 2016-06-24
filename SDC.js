@@ -1,22 +1,22 @@
 var SDC = {
 	/*** General Options ***/
-	overrideConsoleLog: false,
-	showOnLoad:         false,
+	overrideConsoleLog:         false,
+	showOnLoad:                 false,
 
 	/*** Text Area Options ***/
-	hotkey:		     "126",
-	backgroundColor: "#000",
-	textColor:	     "#E2B279",
+	hotkey:                     "126",
+	backgroundColor:            "#000",
+	textColor:                  "#E2B279",
 
 	/*** Container Options ***/
-	anchorH:         "left",   // Either left or right.
-	anchorV:         "bottom", // Either bottom or top.
-	width:           "100%",
-	height:			 "300px",
+	anchorH:                    "left",   // Either left or right.
+	anchorV:                    "bottom", // Either bottom or top.
+	width:                      "100%",
+	height:                     "300px",
 
 	/*** Command FIFO Queue ***/
-	commands:        [],
-	commandIndex:    "-1",
+	commands:                   [],
+	commandIndex:               "-1",
 
 	applyOptions: function(options) {
 		for (var key in options) {
@@ -30,100 +30,112 @@ var SDC = {
 		SDC.applyOptions(options);
 
 		if (SDC.overrideConsoleLog === true) {
-			var realConsoleLog = console.log;
-			
 			console.log = function(message) {
 				SDC.log(message);	
 			};
 		}
 
 		/*** Create Elements ***/
-		var debugContainerElement               = document.createElement("div");
-		debugContainerElement.id                = "debug_container";
-		debugContainerElement.style.display     = (SDC.showOnLoad) ? "flex" : "none";
-		debugContainerElement.style.width       = SDC.width;
-		debugContainerElement.style.height      = SDC.height;
-		debugContainerElement.style.fontFamily  = "'Courier New', Courier, monospace";
-		debugContainerElement.style.flexDirection = "column";
-		debugContainerElement.style.position    = "absolute";
+		var sdcContainer                 = document.createElement("div");
+		sdcContainer.id                  = "debug_container";
+		sdcContainer.style.flexDirection = "column";
+		sdcContainer.style.fontFamily    = "'Courier New', Courier, monospace";
+		sdcContainer.style.position      = "absolute";
+		sdcContainer.style.display       = (SDC.showOnLoad) ? "flex" : "none";
+		sdcContainer.style.height        = SDC.height;
+		sdcContainer.style.width         = SDC.width;
+		sdcContainer.style.zIndex        = "9999";
 
 		switch (SDC.anchorH) {
 			case "right":
-				debugContainerElement.style.right = "0";
+				sdcContainer.style.right = "0";
 				break;
 			case "left":
 			default:
-				debugContainerElement.style.left = "0";
+				sdcContainer.style.left = "0";
 				break;
 		}
 		switch (SDC.anchorV) {
 			case "top":
-				debugContainerElement.style.top = "0";
+				sdcContainer.style.top = "0";
 				break;
 			case "bottom":
 			default:
-				debugContainerElement.style.bottom = "0";
+				sdcContainer.style.bottom = "0";
 				break;
 		}
 
-		debugContainerElement.style.zIndex      = "9999";
+		var sdcHeaderBar                 = document.createElement("div");
+		sdcHeaderBar.style.height        = "15px";
+		sdcHeaderBar.style.background    = "#646161";
+		sdcHeaderBar.style.color         = "#FFF";
+		sdcHeaderBar.style.border        = "1px solid #492121";
+		sdcHeaderBar.style.paddingLeft   = "1%";
+		sdcHeaderBar.style.fontSize      = "0.8em";
+		sdcHeaderBar.style.lineHeight    = "15px";
+		sdcHeaderBar.style.paddingBottom = "4px";
+		sdcHeaderBar.style.paddingTop    = "4px";
+		sdcHeaderBar.innerText           = "simple-debug-console";
 
-		var debugHeaderBarElement               = document.createElement("div");
-		debugHeaderBarElement.style.height      = "15px";
-		debugHeaderBarElement.style.background  = "#646161";
-		debugHeaderBarElement.style.color       = "#FFF";
-		debugHeaderBarElement.style.border      = "1px solid #492121";
-		debugHeaderBarElement.style.paddingLeft = "1%";
-		debugHeaderBarElement.style.fontSize    = "0.8em";
-		debugHeaderBarElement.style.lineHeight  = "15px";
-		debugHeaderBarElement.style.paddingBottom = "4px";
-		debugHeaderBarElement.style.paddingTop    = "4px";
-		debugHeaderBarElement.innerText         = "simple-debug-console";
+		var sdcExpressionContainer                = document.createElement("div");
+		sdcExpressionContainer.style.background   = "#BCAFAF";
+		sdcExpressionContainer.style.paddingTop   = "3px";
+		sdcExpressionContainer.style.paddingRight = "3px";
 
-		var debugExpressionInputDivContainerElement = document.createElement("div");
-		debugExpressionInputDivContainerElement.style.background = "#BCAFAF";
-		debugExpressionInputDivContainerElement.style.paddingTop = "3px";
-		debugExpressionInputDivContainerElement.style.paddingRight = "3px";
+		var sdcExpressionLabel         = document.createElement("label");
+		sdcExpressionLabel.innerHTML   = "=>&nbsp";
+		sdcExpressionLabel.style.float = "left";
 
-		var debugExpressionInputLabelElement         = document.createElement("label");
-		debugExpressionInputLabelElement.innerHTML   = "=>&nbsp";
-		debugExpressionInputLabelElement.style.float = "left";
+		var sdcExpressionSpan            = document.createElement("span");
+		sdcExpressionSpan.style.display  = "block";
+		sdcExpressionSpan.style.overflow = "hidden";
 
-		var debugExpressionInputSpanElement            = document.createElement("span");
-		debugExpressionInputSpanElement.style.display  = "block";
-		debugExpressionInputSpanElement.style.overflow = "hidden";
+		var sdcExpressionInput           = document.createElement("input");
+		sdcExpressionInput.id            = "debug_expression_input";
+		sdcExpressionInput.style.width   = "100%";
+		sdcExpressionInput.style.border  = "0";
+		sdcExpressionInput.style.padding = "1px 0 1px 0";
+		sdcExpressionInput.setAttribute("type", "text");
 
-		var debugExpressionInputElement           = document.createElement("input");
-		debugExpressionInputElement.id            = "debug_expression_input";
-		debugExpressionInputElement.style.width   = "100%";
-		debugExpressionInputElement.style.border  = "0";
-		debugExpressionInputElement.style.padding = "1px 0 1px 0";
-		debugExpressionInputElement.setAttribute("type", "text");
+		var sdcTextArea				 = document.createElement("textarea");
+		sdcTextArea.id               = "debug_text_area";
+		sdcTextArea.style.boxSizing  = "border-box";
+		sdcTextArea.style.width      = "100%";
+		sdcTextArea.style.height     = "100%";
+		sdcTextArea.style.border     = "0";
+		sdcTextArea.style.padding    = "0";
+		sdcTextArea.style.background = SDC.backgroundColor;
+		sdcTextArea.style.color      = SDC.textColor;
+		sdcTextArea.style.fontFamily = "inherit";
+		sdcTextArea.style.resize     = "none";
+		sdcTextArea.setAttribute("readonly", "readonly");
 
-		var debugTextAreaElement				  = document.createElement("textarea");
-		debugTextAreaElement.id                   = "debug_text_area";
-		debugTextAreaElement.style.boxSizing      = "border-box";
-		debugTextAreaElement.style.width          = "100%";
-		debugTextAreaElement.style.height         = "100%";
-		debugTextAreaElement.style.border         = "0";
-		debugTextAreaElement.style.padding        = "0";
-		debugTextAreaElement.style.background     = SDC.backgroundColor;
-		debugTextAreaElement.style.color          = SDC.textColor;
-		debugTextAreaElement.style.fontFamily     = "inherit";
-		debugTextAreaElement.style.resize         = "none";
-		debugTextAreaElement.setAttribute("readonly", "readonly");
+		sdcExpressionSpan.appendChild(sdcExpressionInput);
+		sdcExpressionContainer.appendChild(sdcExpressionLabel);
+		sdcExpressionContainer.appendChild(sdcExpressionSpan);
 
-		debugExpressionInputSpanElement.appendChild(debugExpressionInputElement);
-		debugExpressionInputDivContainerElement.appendChild(debugExpressionInputLabelElement);
-		debugExpressionInputDivContainerElement.appendChild(debugExpressionInputSpanElement);
-
-		debugContainerElement.appendChild(debugHeaderBarElement);
-		debugContainerElement.appendChild(debugExpressionInputDivContainerElement);	
-		debugContainerElement.appendChild(debugTextAreaElement);
-		document.body.appendChild(debugContainerElement);
+		sdcContainer.appendChild(sdcHeaderBar);
+		sdcContainer.appendChild(sdcExpressionContainer);	
+		sdcContainer.appendChild(sdcTextArea);
+		document.body.appendChild(sdcContainer);
 
 		/*** Toggle Console Visibility ***/
-		debugExpressionInputElement.addEventListener("keydown", function(e) {
+		document.addEventListener("keypress", function(e) {
+			if (e.which == SDC.hotkey) {
+				if (sdcContainer.style.display === "none") {
+					sdcContainer.style.display = "flex";
+					sdcExpressionInput.focus();
+					SDC.scrollToBottom();
+				} else {
+					sdcContainer.style.display = "none";
+				}
+
+				e.preventDefault();
+			}
+		});
+
+		/*** Cycle Through Command Queue ***/
+		sdcExpressionInput.addEventListener("keydown", function(e) {
 			if (e.which == "40") {
 				if (SDC.commandIndex == -1) {
 					this.value = "";
@@ -141,24 +153,11 @@ var SDC = {
 			}
 		});
 
-		document.addEventListener("keypress", function(e) {
-			if (e.which == SDC.hotkey) {
-				if (debugContainerElement.style.display === "none") {
-					debugContainerElement.style.display = "flex";
-					debugExpressionInputElement.focus();
-					SDC.scrollToBottom();
-				} else {
-					debugContainerElement.style.display = "none";
-				}
-
-				e.preventDefault();
-			}
-		});
-
-		debugExpressionInputElement.addEventListener("keypress", function(e) {
+		/*** Evaluate Javascript Expression ***/
+		sdcExpressionInput.addEventListener("keypress", function(e) {
 			if (e.which == "13") {
 				if (this.value === "clear") {
-					debugTextAreaElement.textContent = "";
+					sdcTextArea.textContent = "";
 				} else {
 					if (SDC.commands.length === 0 || SDC.commands[0] !== this.value) {
 						SDC.commands.unshift(this.value);
@@ -191,16 +190,16 @@ var SDC = {
 	},
 
 	setContainerPosition: function(top, right, bottom, left, width, height) {
-		var debugContainerElement = document.getElementById("debug_container");
-		debugContainerElement.style.top    = top;
-		debugContainerElement.style.right  = right;
-		debugContainerElement.style.bottom = bottom;
-		debugContainerElement.style.left   = left;
-		debugContainerElement.style.width  = width;
-		debugContainerElement.style.height = height;
+		var sdcContainer = document.getElementById("debug_container");
+		sdcContainer.style.top    = top;
+		sdcContainer.style.right  = right;
+		sdcContainer.style.bottom = bottom;
+		sdcContainer.style.left   = left;
+		sdcContainer.style.width  = width;
+		sdcContainer.style.height = height;
 
-		var debugTextAreaElement = document.getElementById("debug_text_area");
-		debugTextAreaElement.style.height  = height;
+		var sdcTextArea = document.getElementById("debug_text_area");
+		sdcTextArea.style.height  = height;
 
 		SDC.scrollToBottom();
 	},
@@ -222,9 +221,9 @@ var SDC = {
 	},
 
 	scrollToBottom: function() {
-		var debugTextAreaElement = document.getElementById("debug_text_area");
-		if (debugTextAreaElement.scrollTop != debugTextAreaElement.scrollHeight) {
-			debugTextAreaElement.scrollTop = debugTextAreaElement.scrollHeight;
+		var sdcTextArea = document.getElementById("debug_text_area");
+		if (sdcTextArea.scrollTop != sdcTextArea.scrollHeight) {
+			sdcTextArea.scrollTop = sdcTextArea.scrollHeight;
 		}
 	},
 
@@ -235,16 +234,15 @@ var SDC = {
 		var now         = new Date();
 		var timestamp   = "(" + this.leftPad(now.getHours().toString(), 2, "0") + ":" + this.leftPad(now.getMinutes().toString(), 2, "0") + ":" + this.leftPad(now.getSeconds().toString(), 2, "0") + ") | ";
 
-		var debugTextAreaElement = document.getElementById("debug_text_area");
+		var sdcTextArea = document.getElementById("debug_text_area");
 
-		if (debugTextAreaElement.textContent.split("\n").length > maxBufferLines) {
-			var firstLineEnding = debugTextAreaElement.textContent.indexOf("\n") + 1;
+		if (sdcTextArea.textContent.split("\n").length > maxBufferLines) {
+			var firstLineEnding = sdcTextArea.textContent.indexOf("\n") + 1;
 
-			debugTextAreaElement.textContent = debugTextAreaElement.textContent.substr(firstLineEnding);
+			sdcTextArea.textContent = sdcTextArea.textContent.substr(firstLineEnding);
 		} 
 
-		debugTextAreaElement.textContent = debugTextAreaElement.textContent + prepend + timestamp + message + "\n";
-
+		sdcTextArea.textContent = sdcTextArea.textContent + prepend + timestamp + message + "\n";
 		SDC.scrollToBottom();
 	}
 };
