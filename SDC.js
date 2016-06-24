@@ -1,14 +1,18 @@
 var SDC = {
+	/*** General Options ***/
+	overrideConsoleLog: false,
+	showOnLoad:         false,
+
 	/*** Text Area Options ***/
 	hotkey:		     "126",
 	backgroundColor: "#000",
 	textColor:	     "#E2B279",
-	height:			 "300px",
 
 	/*** Container Options ***/
 	anchorH:         "left",   // Either left or right.
 	anchorV:         "bottom", // Either bottom or top.
 	width:           "100%",
+	height:			 "300px",
 
 	/*** Command FIFO Queue ***/
 	commands:        [],
@@ -25,10 +29,18 @@ var SDC = {
 	init: function(options) {
 		SDC.applyOptions(options);
 
+		if (SDC.overrideConsoleLog === true) {
+			var realConsoleLog = console.log;
+			
+			console.log = function(message) {
+				SDC.log(message);	
+			};
+		}
+
 		/*** Create Elements ***/
 		var debugContainerElement               = document.createElement("div");
 		debugContainerElement.id                = "debug_container";
-		debugContainerElement.style.display     = "flex";
+		debugContainerElement.style.display     = (SDC.showOnLoad) ? "flex" : "none";
 		debugContainerElement.style.width       = SDC.width;
 		debugContainerElement.style.height      = SDC.height;
 		debugContainerElement.style.fontFamily  = "'Courier New', Courier, monospace";
@@ -97,6 +109,7 @@ var SDC = {
 		debugTextAreaElement.style.padding        = "0";
 		debugTextAreaElement.style.background     = SDC.backgroundColor;
 		debugTextAreaElement.style.color          = SDC.textColor;
+		debugTextAreaElement.style.fontFamily     = "inherit";
 		debugTextAreaElement.style.resize         = "none";
 		debugTextAreaElement.setAttribute("readonly", "readonly");
 
