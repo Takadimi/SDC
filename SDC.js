@@ -26,6 +26,14 @@ var SDC = {
 		}
 	},
 
+	applyStyle: function(element, styleOptions) {
+		for (var key in styleOptions) {
+			if (!styleOptions.hasOwnProperty(key)) continue;
+
+			element.style[key] = styleOptions[key];
+		}
+	},
+
 	init: function(options) {
 		SDC.applyOptions(options);
 
@@ -36,79 +44,90 @@ var SDC = {
 		}
 
 		/*** Create Elements ***/
-		var sdcContainer                 = document.createElement("div");
-		sdcContainer.id                  = "debug_container";
-		sdcContainer.style.flexDirection = "column";
-		sdcContainer.style.fontFamily    = "'Courier New', Courier, monospace";
-		sdcContainer.style.position      = "absolute";
-		sdcContainer.style.display       = (SDC.showOnLoad) ? "flex" : "none";
-		sdcContainer.style.height        = SDC.height;
-		sdcContainer.style.width         = SDC.width;
-		sdcContainer.style.zIndex        = "9999";
+		var sdcContainer = document.createElement("div");
+		sdcContainer.id  = "debug_container";
 
-		switch (SDC.anchorH) {
-			case "right":
-				sdcContainer.style.right = "0";
-				break;
-			case "left":
-			default:
-				sdcContainer.style.left = "0";
-				break;
-		}
-		switch (SDC.anchorV) {
-			case "top":
-				sdcContainer.style.top = "0";
-				break;
-			case "bottom":
-			default:
-				sdcContainer.style.bottom = "0";
-				break;
-		}
+		var anchors = {
+			right  : "",
+			left   : "",
+			top    : "",
+			bottom : ""
+		};
+	
+		if (SDC.anchorH === "right") anchors.right  = "0";
+		else                         anchors.left   = "0";
 
-		var sdcHeaderBar                 = document.createElement("div");
-		sdcHeaderBar.style.height        = "15px";
-		sdcHeaderBar.style.background    = "#646161";
-		sdcHeaderBar.style.color         = "#FFF";
-		sdcHeaderBar.style.border        = "1px solid #492121";
-		sdcHeaderBar.style.paddingLeft   = "1%";
-		sdcHeaderBar.style.fontSize      = "0.8em";
-		sdcHeaderBar.style.lineHeight    = "15px";
-		sdcHeaderBar.style.paddingBottom = "4px";
-		sdcHeaderBar.style.paddingTop    = "4px";
-		sdcHeaderBar.innerText           = "simple-debug-console";
+		if (SDC.anchorV === "top")   anchors.top    = "0";
+		else                         anchors.bottom = "0";
 
-		var sdcExpressionContainer                = document.createElement("div");
-		sdcExpressionContainer.style.background   = "#BCAFAF";
-		sdcExpressionContainer.style.paddingTop   = "3px";
-		sdcExpressionContainer.style.paddingRight = "3px";
+		SDC.applyStyle(sdcContainer, {
+			flexDirection : "column",
+			fontFamily    : "'Courier New', Courier, monospace",
+			position      : "absolute",
+			display       : (SDC.showOnLoad) ? "flex" : "none",
+			height        : SDC.height,
+			width         : SDC.width,
+			zIndex        : "9999",
+			right         : anchors.right,
+			left          : anchors.left,
+			top           : anchors.top,
+			bottom        : anchors.bottom
+		});
 
-		var sdcExpressionLabel         = document.createElement("label");
-		sdcExpressionLabel.innerHTML   = "=>&nbsp";
-		sdcExpressionLabel.style.float = "left";
+		var sdcHeaderBar       = document.createElement("div");
+		sdcHeaderBar.innerText = "simple-debug-console";
+		SDC.applyStyle(sdcHeaderBar, {
+			height        : "15px",
+			background    : "#646161",
+			color         : "#FFF",
+			border        : "1px solid #492121",
+			paddingLeft   : "1%",
+			fontSize      : "0.8em",
+			lineHeight    : "15px",
+			paddingBottom : "4px",
+			paddingTop    : "4px",
+		});
 
-		var sdcExpressionSpan            = document.createElement("span");
-		sdcExpressionSpan.style.display  = "block";
-		sdcExpressionSpan.style.overflow = "hidden";
+		var sdcExpressionContainer = document.createElement("div");
+		SDC.applyStyle(sdcExpressionContainer, {
+			background   : "#BCAFAF",
+			paddingTop   : "3px",
+			paddingRight : "3px"
+		});
 
-		var sdcExpressionInput           = document.createElement("input");
-		sdcExpressionInput.id            = "debug_expression_input";
-		sdcExpressionInput.style.width   = "100%";
-		sdcExpressionInput.style.border  = "0";
-		sdcExpressionInput.style.padding = "1px 0 1px 0";
+		var sdcExpressionLabel       = document.createElement("label");
+		sdcExpressionLabel.innerHTML = "=>&nbsp";
+		SDC.applyStyle(sdcExpressionLabel, { float: "left" });
+
+		var sdcExpressionSpan = document.createElement("span");
+		SDC.applyStyle(sdcExpressionSpan, {
+			display  : "block",
+			overflow : "hidden"
+		});
+
+		var sdcExpressionInput = document.createElement("input");
+		sdcExpressionInput.id  = "debug_expression_input";
 		sdcExpressionInput.setAttribute("type", "text");
+		SDC.applyStyle(sdcExpressionInput, {
+			width   : "100%",
+			border  : "0",
+			padding : "1px 0 1px 0"
+		});
 
-		var sdcTextArea				 = document.createElement("textarea");
-		sdcTextArea.id               = "debug_text_area";
-		sdcTextArea.style.boxSizing  = "border-box";
-		sdcTextArea.style.width      = "100%";
-		sdcTextArea.style.height     = "100%";
-		sdcTextArea.style.border     = "0";
-		sdcTextArea.style.padding    = "0";
-		sdcTextArea.style.background = SDC.backgroundColor;
-		sdcTextArea.style.color      = SDC.textColor;
-		sdcTextArea.style.fontFamily = "inherit";
-		sdcTextArea.style.resize     = "none";
+		var sdcTextArea = document.createElement("textarea");
+		sdcTextArea.id  = "debug_text_area";
 		sdcTextArea.setAttribute("readonly", "readonly");
+		SDC.applyStyle(sdcTextArea, {
+			boxSizing  : "border-box",
+			width      : "100%",
+			height     : "100%",
+			border     : "0",
+			padding    : "0",
+			background : SDC.backgroundColor,
+			color      : SDC.textColor,
+			fontFamily : "inherit",
+			resize     : "none"
+		});
 
 		sdcExpressionSpan.appendChild(sdcExpressionInput);
 		sdcExpressionContainer.appendChild(sdcExpressionLabel);
@@ -191,15 +210,17 @@ var SDC = {
 
 	setContainerPosition: function(top, right, bottom, left, width, height) {
 		var sdcContainer = document.getElementById("debug_container");
-		sdcContainer.style.top    = top;
-		sdcContainer.style.right  = right;
-		sdcContainer.style.bottom = bottom;
-		sdcContainer.style.left   = left;
-		sdcContainer.style.width  = width;
-		sdcContainer.style.height = height;
+		SDC.applyStyle(sdcContainer, {
+			top    : top,
+			right  : right,
+			bottom : bottom,
+			left   : left,
+			width  : width,
+			height : height
+		});
 
 		var sdcTextArea = document.getElementById("debug_text_area");
-		sdcTextArea.style.height  = height;
+		SDC.applyStyle(sdcTextArea, { height: height });
 
 		SDC.scrollToBottom();
 	},
